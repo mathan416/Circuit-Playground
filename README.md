@@ -7,10 +7,10 @@ Code is procided as-is, and should be working as I use it on my own devices.
 ## CP_MiniGames_1
   - Games included:
       - Hot Potato    (default if no boot button is held)
-      - Shake Dice    (hold B at boot)
-      - Whack-a-Mole  (press B in Dice)
       - Simon-4       (hold A at boot)  
       - Balancer      (press B in Simon)
+      - Shake Dice    (hold B at boot)
+      - Whack-a-Mole  (press B in Dice)
 
 ---
 
