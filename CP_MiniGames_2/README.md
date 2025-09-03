@@ -166,7 +166,7 @@ cp_minigames_2.ino
 ├─ Boot selection
 │  └─ splashAndPick()               # A=Orbit, B=Twinkle, none=Spinner
 └─ setup()/loop()                   # choose once, then run forever
-
+```
 ---
 
 ## Troubleshooting

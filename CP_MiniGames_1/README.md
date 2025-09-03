@@ -208,7 +208,7 @@ PlaygroundGames.ino
 │  ├─ runBalancerForever()   # alt-mode triggered from Simon via B
 │  └─ runSimonForever()
 └─ setup()/loop()            # boot selection → run chosen game forever
-
+```
 ---
 
 ## Troubleshooting
