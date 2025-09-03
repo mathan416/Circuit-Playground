@@ -72,8 +72,8 @@ static const float    SHK_THRESH     = 1.2f;   // ~0.12 g to count as a shake
 static const float    SHK_EN_FROM_G  = 0.045f; // energy gain per m/s^2 above thresh
 static const float    SHK_EN_DECAY   = 0.985f; // keep as-is (feel)
 static const uint16_t SHK_TICK_MS    = 26;
-static const uint16_t SHK_ROUND_MS  = 12000;  // total time for a round
-static const uint16_t SHK_HOLD_MS   = 1500;   // must keep meter ≥9 for this long to win
+static const uint16_t SHK_ROUND_MS   = 12000;  // total time for a round
+static const uint16_t SHK_HOLD_MS    = 1500;   // must keep meter ≥9 for this long to win
 
 // Tug-of-War
 static const uint8_t  TUG_TRACK_LEN  = 9;     // distance from center to win
@@ -181,11 +181,24 @@ static Game splashAndPick(uint16_t windowMs=LAUNCHER_WINDOW_MS) {
 
 // ==================== Game: Reaction Timer (with alt Tilt Maze) ====================
 static void runTiltMazeForever(){
-  pixelsOff(); waitButtonsReleased(180);
+  // --- Entry cue (match Shaker Challenge): green clockwise sweep + arpeggio ---
+  pixelsOff();
+  for (uint8_t k=0; k<10; k++){
+    pixelsOff();
+    CircuitPlayground.setPixelColor(k, 35, 0, 0);        // green head
+    CircuitPlayground.setPixelColor((k+9)%10, 8, 0, 0);  // faint tail
+    CircuitPlayground.strip.show();
+    CircuitPlayground.playTone(520 + k*14, 12);
+    delay(18);
+  }
+  pixelsOff();
+  waitButtonsReleased(180);
+
   // Waypoints around ring in order
   const uint8_t path[10] = {0,2,4,6,8,1,3,5,7,9};
   uint8_t wp = 0;
   unsigned long lastStep=0, outsideSince=0;
+
   for(;;){
     if (abResetHeld()) { pixelsOff(); return; } // back to Reaction
 
@@ -205,7 +218,8 @@ static void runTiltMazeForever(){
     // draw: target amber halo, ball blue
     pixelsOff();
     setPix(target, 25,16,0);
-    setPix((target+1)%10, 10,6,0); setPix((target+9)%10, 10,6,0);
+    setPix((target+1)%10, 10,6,0);
+    setPix((target+9)%10, 10,6,0);
     setPix(ball, 0,0,40);
     CircuitPlayground.strip.show();
 
@@ -214,12 +228,17 @@ static void runTiltMazeForever(){
       wp = (uint8_t)((wp+1)%10);
       outsideSince = 0;
       // tiny flash
-      for(uint8_t k=0;k<2;k++){ setPix(target,0,25,0); CircuitPlayground.strip.show(); delay(40); setPix(target,25,16,0); CircuitPlayground.strip.show(); delay(40); }
+      for(uint8_t k=0;k<2;k++){
+        setPix(target,0,25,0); CircuitPlayground.strip.show(); delay(40);
+        setPix(target,25,16,0); CircuitPlayground.strip.show(); delay(40);
+      }
     } else {
       if (outsideSince==0) outsideSince=now;
       if (now - outsideSince >= TILT_LOSE_MS){
         // fail flash then reset to start
-        for(uint8_t k=0;k<3;k++){ solid(40,0,0); toneHz(220,120); pixelsOff(); delay(80); }
+        for(uint8_t k=0;k<3;k++){
+          solid(40,0,0); toneHz(220,120); pixelsOff(); delay(80);
+        }
         wp=0; outsideSince=0;
       }
     }
@@ -343,7 +362,17 @@ REACT_ARM:
 
 // ==================== Game: Rapid Fire (with alt Shaker Challenge) ====================
 static void runShakerForever(){
-  pixelsOff(); 
+  // --- Entry cue (match "Whack-a-Mole" from Pack 1): green clockwise sweep + arpeggio ---
+  pixelsOff();
+  for (uint8_t k=0; k<10; k++){
+    pixelsOff();
+    CircuitPlayground.setPixelColor(k, 0, 35, 0);        // green head
+    CircuitPlayground.setPixelColor((k+9)%10, 0, 8, 0);  // faint tail
+    CircuitPlayground.strip.show();
+    CircuitPlayground.playTone(520 + k*14, 12);
+    delay(18);
+  }
+  pixelsOff();
   waitButtonsReleased(180);
 
   // --- Round state ---
@@ -358,9 +387,6 @@ static void runShakerForever(){
     CircuitPlayground.strip.show();
   };
 
-  // Optional: show a quick “ready” pulse
-  for (uint8_t k=0;k<2;k++){ solid(0,0,30); toneHz(720,70); pixelsOff(); delay(90); }
-
   for(;;){
     if (abResetHeld()) { pixelsOff(); return; } // back to Rapid idle
 
@@ -372,7 +398,6 @@ static void runShakerForever(){
     if (energy > 2.0f) energy = 2.0f;       // clamp
 
     // Map to LEDs (no baseline offset now; empty is truly empty)
-    //uint8_t n = (uint8_t)constrain((int)(energy * 6.0f + 0.5f), 0, 10);
     uint8_t n = (uint8_t)constrain((int)(energy*6.0f + 0.5f), 0, 10);
     drawMeter(n);
 
