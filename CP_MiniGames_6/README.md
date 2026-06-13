@@ -18,11 +18,7 @@ No external wiring is required.
 
 ## Library
 
-Install the Adafruit Circuit Playground library. In this workspace it is available at:
-
-```text
-~/Developer/libraries/Adafruit_Circuit_Playground
-```
+Install the Adafruit Circuit Playground library. 
 
 ## Upload
 

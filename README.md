@@ -9,11 +9,8 @@ Each pack is a standalone Arduino sketch. Upload one sketch at a time, then use 
 
 ## Library
 
-Install the Adafruit Circuit Playground library. In this workspace it is available at:
+Install the Adafruit Circuit Playground library.
 
-```text
-~/Developer/libraries/Adafruit_Circuit_Playground
-```
 
 The sketches include:
 
