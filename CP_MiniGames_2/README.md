@@ -1,214 +1,176 @@
-# PlaygroundGames — CPX/CPB No-Screen Fidget Pack (cp_minigames_2)
+# CP_MiniGames_2 - Fidget Pack for Circuit Playground
 
-> Adafruit Circuit Playground **Express** (SAMD21) & **Bluefruit** (nRF52840)  
-> One boot-time selector + three chill, tactile **fidgets** tuned for the 10-LED NeoPixel ring, buttons, and accelerometer.
+`CP_MiniGames_2.ino` is a no-screen fidget pack for Adafruit Circuit Playground Express and Circuit Playground Bluefruit. It uses the 10 NeoPixels, A/B buttons, accelerometer, and speaker.
 
-- **Launcher (boot picker)** — choose once at power-up:
-  - **A held** → **Orbit** (tilt-speed comet)
-  - **B held** → **Twinkle** (motion-fed sparkles)
-  - **No buttons** → **Spinner** (physicsy ring spinner) → **Comet Painter** (alt-mode via B)
-- **In-game universal:** **Hold A+B ≈1.5 s** to reset the *current fidget* to its own idle (not the launcher).
+## Fidgets Included
 
-## Table of Contents
-- [Features](#features)
-- [Hardware](#hardware)
-- [Install & Build](#install--build)
-- [Quick Start](#quick-start)
-- [Launcher UX](#launcher-ux)
-- [Fidgets](#fidgets)
-  - [Spinner](#spinner)
-    - [Alt-Mode: Comet Painter](#alt-mode-comet-painter)
-  - [Orbit](#orbit)
-  - [Twinkle](#twinkle)
-- [Tuning & Constants](#tuning--constants)
-- [Code Structure](#code-structure)
-- [Troubleshooting](#troubleshooting)
-- [FAQ](#faq)
-- [License](#license)
-- [Credits](#credits)
-
----
-
-## Features
-- **No-screen** pocket fidgets using only the CPX/CPB **NeoPixel ring**, **buttons**, and **accelerometer**.
-- **Single boot selection**: pick a fidget in a ~1.4–1.5 s window; then it runs until a hardware reset.
-- **Polished feedback**: breathing idles, confirm spinners, subtle tones, speed-tinted colors.
-- **Alt-mode** inside Spinner (B button) for a second vibe without reflashing.
-- **Robust inputs**: debounced long-press reset (A+B) with visual confirmation.
-
----
+- Spinner: default mode when no button is held during boot.
+- Comet Painter: press B from Spinner.
+- Orbit: hold A during boot.
+- Twinkle: hold B during boot.
 
 ## Hardware
-- **Boards:**  
-  - Adafruit **Circuit Playground Express** (SAMD21)  
-  - Adafruit **Circuit Playground Bluefruit** (nRF52840)
-- **Sensors / I/O used:**  
-  - 10× NeoPixel ring  
-  - Left/Right buttons (A/B)  
-  - 3-axis accelerometer
-- **Libraries:**  
-  - **Adafruit Circuit Playground** (install via Arduino Library Manager)
 
-No external wiring required.
+- Adafruit Circuit Playground Express (SAMD21), or
+- Adafruit Circuit Playground Bluefruit (nRF52840)
 
----
+No external wiring is required.
 
-## Install & Build
-1. **Arduino IDE** → install board definitions for CPX/CPB.
-2. **Library Manager** → install **Adafruit Circuit Playground**.
-3. Open `cp_minigames_2.ino`.
-4. Select your board + port → **Upload**.
-5. On reboot you’ll see a brief **hint/spinner** window for selection.
+## Library
 
----
+Install the Adafruit Circuit Playground library. In this workspace it is available at:
 
-## Quick Start
-- **At boot (≈1.4 s window):**
-  - Hold **A** → **Orbit** (green spinner hint)
-  - Hold **B** → **Twinkle** (blue spinner hint)
-  - Hold **none** → **Spinner** (amber default)
-- **Any fidget:** hold **A+B ~1.5 s** → reset to that fidget’s idle (two-blink confirm).
-
----
-
-## Launcher UX
-Runs **once at boot**:
-- Holding **A** shows a **green** confirm spinner (Orbit).
-- Holding **B** shows a **blue** confirm spinner (Twinkle).
-- Holding none shows **amber** hints (Spinner).
-- After the window expires, your choice **stays resident** until a hardware reset.
-
----
-
-## Fidgets
-
-### Spinner
-A physics-y ring spinner. **Flicks/tilt** add momentum, **drag** gently eases it down. Color hue brightens with speed.
-
-- **Loop:** measure tilt-derived angular velocity → integrate with drag → draw comet head + tail
-- **Controls**
-  - **A**: toggle *direction lock* (free / positive-only)
-  - **B**: **enter Comet Painter** (alt-mode)
-  - **A+B hold**: reset Spinner to idle
-
-#### Alt-Mode: Comet Painter
-Tilt to *steer* a colorful comet around the ring; adjustable tail & palette.
-
-- **Controls**
-  - **A**: cycle tail length (3 ↔ 5)
-  - **B**: nudge hue anchor
-  - **A+B hold**: exit back to Spinner
-
----
-
-### Orbit
-A calm orbiting comet whose **speed follows tilt magnitude**—more tilt, more flow.
-
-- **Controls**
-  - **A**: sensitivity (Low → Med → High)
-  - **B**: dot size (1-LED ↔ 3-LED comet)
-  - **A+B hold**: reset Orbit to idle
-
----
-
-### Twinkle
-Ambient **sparkles** that feed off **motion energy**; shake to “charge” denser twinkles. Pick a color family.
-
-- **Controls**
-  - **A**: density (Low → Med → High)
-  - **B**: hue family (Rainbow → Warm → Cool)
-  - **A+B hold**: reset Twinkle to idle
-
----
-
-## Tuning & Constants
-Edit these near the top of `cp_minigames_2.ino` to match your feel:
-
-### Global
-- `BRIGHTNESS` — NeoPixel brightness (0–255)  
-- `LAUNCHER_WINDOW_MS` — boot selection window (ms)  
-- `AB_RESET_MS` — A+B hold time for in-fidget reset (ms)
-
-### Spinner physics
-- `DT_S` — physics timestep (s)  
-- `DRAG` — angular drag per step (0–1)  
-- `KICK_GAIN` — how strongly tilt-derived angVel injects torque  
-- `FLICK_THRESH` — rad/s to count as a flick impulse  
-- `FLICK_BONUS` — extra omega on flick  
-- `OMEGA_MAX` — clamp for stability
-
-### Orbit (tilt → speed)
-- `ORBIT_BASE` — base ω (rad/s)  
-- `ORBIT_GAIN_LO/MD/HI` — sensitivities
-
-### Twinkle (motion energy)
-- `ENERGY_DECAY` — passive energy bleed (per step)  
-- `ENERGY_FROM_SHAKE` — energy gained per g-excess  
-- `DENS_LOW/MED/HI` — spawn density presets
-
----
-
-## Code Structure
 ```text
-cp_minigames_2.ino
-├─ Utilities
-│  ├─ pixelsOff(), solid(), wheel()
-│  ├─ abResetHeld(), waitButtonsReleased()
-│  ├─ ringAngle(), gex(), breatheOnce()
-├─ Spinner
-│  ├─ drawComet()
-│  ├─ runCometPainterForever()      # alt-mode via B
-│  └─ runSpinnerForever()
-├─ Orbit
-│  └─ runOrbitForever()
-├─ Twinkle
-│  └─ runTwinkleForever()
-├─ Boot selection
-│  └─ splashAndPick()               # A=Orbit, B=Twinkle, none=Spinner
-└─ setup()/loop()                   # choose once, then run forever
+~/Developer/libraries/Adafruit_Circuit_Playground
 ```
----
+
+The sketch includes:
+
+```cpp
+#include <Adafruit_CircuitPlayground.h>
+```
+
+## Upload
+
+1. Open `CP_MiniGames_2/CP_MiniGames_2.ino` in Arduino IDE.
+2. Select your Circuit Playground Express or Circuit Playground Bluefruit board.
+3. Select the serial port for the board.
+4. Upload.
+5. Reset or power-cycle the board to use the boot picker.
+
+## Boot Picker
+
+The fidget is selected once, during the first 1.4 seconds after boot.
+
+| Boot input | Fidget |
+| --- | --- |
+| Hold A | Orbit |
+| Hold B | Twinkle |
+| Hold nothing | Spinner |
+
+The selected fidget keeps running until the board is reset.
+
+## Universal Control
+
+Hold A+B for about 1.5 seconds while inside a fidget to reset that fidget back to its own idle state. This does not return to the boot picker.
+
+## Spinner
+
+Spinner is a physics-style ring spinner. Tilt and flick motion add momentum, and drag gradually slows the comet.
+
+### How to Use
+
+1. Let the amber default mode start after boot, or hold nothing during the boot picker.
+2. Tilt or flick the board to add spin.
+3. Watch the comet head and tail move around the ring.
+4. The color shifts with motion and speed.
+
+### Controls
+
+| Input | Action |
+| --- | --- |
+| Tilt/flick | Add momentum |
+| A | Toggle direction lock |
+| B | Enter Comet Painter |
+| A+B hold | Reset Spinner |
+
+### Direction Lock
+
+Pressing A toggles whether the spinner can move freely in either direction or is biased to the positive direction only.
+
+## Comet Painter
+
+Comet Painter is an alternate mode launched from Spinner. It turns the ring into a tilt-controlled comet with adjustable tail length and hue.
+
+### How to Use
+
+1. Press B while in Spinner.
+2. Tilt the board to steer the comet around the ring.
+3. Press A to change the tail length.
+4. Press B to shift the hue anchor.
+
+### Controls
+
+| Input | Action |
+| --- | --- |
+| Tilt | Move the comet |
+| A | Toggle tail length |
+| B | Nudge the hue anchor |
+| A+B hold | Exit back to Spinner |
+
+## Orbit
+
+Orbit is a calm orbiting comet whose speed follows the tilt amount.
+
+### How to Use
+
+1. Hold A during boot to enter Orbit.
+2. Tilt the board gently for slow motion.
+3. Tilt farther for faster orbiting.
+4. Use A and B to tune the feel while it runs.
+
+### Controls
+
+| Input | Action |
+| --- | --- |
+| Tilt | Control orbit speed |
+| A | Cycle sensitivity: low, medium, high |
+| B | Toggle comet size: 1 LED or 3 LEDs |
+| A+B hold | Reset Orbit |
+
+## Twinkle
+
+Twinkle creates motion-fed sparkles. Movement charges the effect, and the LEDs fade down over time.
+
+### How to Use
+
+1. Hold B during boot to enter Twinkle.
+2. Move or shake the board to feed sparkle energy.
+3. Leave it still for a calmer pattern.
+4. Use A and B to change density and color family.
+
+### Controls
+
+| Input | Action |
+| --- | --- |
+| Move/shake | Add sparkle energy |
+| A | Cycle density: low, medium, high |
+| B | Cycle hue family: rainbow, warm, cool |
+| A+B hold | Reset Twinkle |
+
+## Tuning Constants
+
+Edit these near the top of `CP_MiniGames_2.ino`.
+
+| Constant | Purpose |
+| --- | --- |
+| `BRIGHTNESS` | Overall NeoPixel brightness |
+| `LAUNCHER_WINDOW_MS` | Boot picker selection time |
+| `AB_RESET_MS` | A+B hold time |
+| `DT_S` | Spinner physics timestep |
+| `DRAG` | Spinner slowdown per step |
+| `KICK_GAIN` | How strongly tilt adds spin |
+| `FLICK_THRESH` | Motion threshold for a flick |
+| `FLICK_BONUS` | Extra spin added by a flick |
+| `OMEGA_MAX` | Maximum spinner speed |
+| `ORBIT_BASE` | Base Orbit speed |
+| `ORBIT_GAIN_LO`, `ORBIT_GAIN_MD`, `ORBIT_GAIN_HI` | Orbit sensitivity presets |
+| `ENERGY_DECAY` | Twinkle energy decay |
+| `ENERGY_FROM_SHAKE` | Twinkle energy gained from motion |
+| `DENS_LOW`, `DENS_MED`, `DENS_HI` | Twinkle density presets |
 
 ## Troubleshooting
 
-**Nothing happens after upload**  
-- Verify **board & port** in Arduino IDE.  
-- Ensure **Adafruit Circuit Playground** library is installed.  
-- Power cycle the board; some hosts enumerate Serial late.
-
-**Spinner feels sluggish / too wild**  
-- For *more snap*: raise `KICK_GAIN`, lower `DRAG`, or increase `FLICK_BONUS`.  
-- For *calmer*: lower `KICK_GAIN`, raise `DRAG`, or lower `OMEGA_MAX`.
-
-**Orbit too sensitive**  
-- Tap **A** in Orbit to cycle down sensitivity, or reduce `ORBIT_GAIN_*`.
-
-**Twinkle never fills**  
-- Move the board—motion feeds energy. Raise `ENERGY_FROM_SHAKE` or set higher density with **A**.
-
-**A+B reset doesn’t trigger**  
-- Hold both buttons until the double-blink (~1.5 s). Increase `AB_RESET_MS` if needed.
-
----
-
-## FAQ
-
-**Why doesn’t A+B return to the launcher?**  
-For pocket-proofing: once selected, a fidget stays resident. Use a hardware reset to choose at boot again.
-
-**Will it behave the same on CPX and CPB?**  
-Yes; minor audio/IMU differences may change “feel” slightly—tweak constants to taste.
-
-**Can I change colors/tails?**  
-Yes—see `wheel()`, `drawComet()`, and in-mode controls (A/B).
-
----
-
-## License
-© 2025 Iain Bennett
-
----
+| Problem | Check |
+| --- | --- |
+| Sketch will not compile | Confirm the Adafruit Circuit Playground library is installed |
+| Upload fails | Confirm the selected board and port |
+| Wrong fidget starts | Hold the boot-picker button before pressing reset |
+| Spinner feels too slow | Raise `KICK_GAIN`, lower `DRAG`, or raise `FLICK_BONUS` |
+| Spinner feels too wild | Lower `KICK_GAIN` or `OMEGA_MAX`, or raise `DRAG` |
+| Twinkle is too sparse | Increase density with A or raise `ENERGY_FROM_SHAKE` |
 
 ## Credits
-- **Design & code:** Iain Bennett  
-- **Platform & library:** Adafruit Circuit Playground
+
+Design and code: Iain Bennett  
+Platform and library: Adafruit Circuit Playground

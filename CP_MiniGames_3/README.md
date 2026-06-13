@@ -1,284 +1,226 @@
-# PlaygroundGames — CPX/CPB No-Screen Launcher + Mini Games (Pack 3)
+# CP_MiniGames_3 - Arcade Games for Circuit Playground
 
-> Adafruit Circuit Playground **Express** (SAMD21) & **Bluefruit** (nRF52840)  
-> One boot-time selector + three arcade-style games (each with an alt-mode), tuned for the 10-LED NeoPixel ring, buttons, and accelerometer.
+`CP_MiniGames_3.ino` is a no-screen arcade game pack for Adafruit Circuit Playground Express and Circuit Playground Bluefruit. It uses the 10 NeoPixels, A/B buttons, accelerometer, and speaker.
 
-- **Launcher (boot picker)** — choose once at power-up:
-  - **A held** → **Reaction Timer** → **Tilt Maze** (alt-mode via **B** while in Reaction)
-  - **B held** → **Rapid Fire** → **Shaker Challenge** (alt-mode via **B** while in Rapid)
-  - **No buttons** → **Tug-of-War** (default; Solo/2-Player chosen from idle)
-- **In-game universal:** **Hold A+B ≈1.5s** to reset the *current game* back to its idle (does **not** return to the launcher).
+## Games Included
 
-## Table of Contents
-- [Features](#features)
-- [Hardware](#hardware)
-- [Install & Build](#install--build)
-- [Quick Start](#quick-start)
-- [Launcher UX](#launcher-ux)
-- [Games](#games)
-  - [Tug-of-War (default)](#tug-of-war-default)
-  - [Reaction Timer](#reaction-timer)
-    - [Alt-Mode: Tilt Maze](#alt-mode-tilt-maze)
-  - [Rapid Fire](#rapid-fire)
-    - [Alt-Mode: Shaker Challenge](#alt-mode-shaker-challenge)
-- [Tuning & Constants](#tuning--constants)
-- [Code Structure](#code-structure)
-- [Troubleshooting](#troubleshooting)
-- [FAQ](#faq)
-- [License](#license)
-- [Credits](#credits)
-
----
-
-## Features
-- **No-screen** arcade games using only the CPX/CPB **NeoPixel ring**, **A/B buttons**, and **accelerometer**.
-- **Single boot selection**: pick a game in a ~1.5s window, then run it until hardware reset.
-- **Polished feedback**: breathing idles, confirm spinners, tones, win/lose flashes.
-- **Alt-modes** accessed in-game (press **B**), so a single binary offers multiple play styles.
-- **Robust inputs**: debounced A+B long-press reset and “release guard” between phases.
-
----
+- Tug-of-War: default game when no button is held during boot.
+- Reaction Timer: hold A during boot.
+- Tilt Maze: press B from Reaction Timer idle.
+- Rapid Fire: hold B during boot.
+- Shaker Challenge: press B from Rapid Fire idle.
 
 ## Hardware
-- **Boards:**  
-  - Adafruit **Circuit Playground Express** (SAMD21)  
-  - Adafruit **Circuit Playground Bluefruit** (nRF52840)
-- **Sensors used:**  
-  - 10x NeoPixel ring  
-  - Left/Right buttons (A/B)  
-  - 3-axis accelerometer
-- **Libraries:**  
-  - **Adafruit Circuit Playground** (install via Arduino Library Manager)
 
-No external wiring required.
+- Adafruit Circuit Playground Express (SAMD21), or
+- Adafruit Circuit Playground Bluefruit (nRF52840)
 
----
+No external wiring is required.
 
-## Install & Build
-1. In **Arduino IDE**, install board defs for CPX/CPB.
-2. **Library Manager** → install **Adafruit Circuit Playground**.
-3. Open `cp_minigames_3.ino`.
-4. Select board + port, then **Upload**.
-5. On reboot you’ll see a brief **spinner/hints** window to choose a game.
+## Library
 
----
+Install the Adafruit Circuit Playground library. In this workspace it is available at:
 
-## Quick Start
-- **At boot (~1.5s):**
-  - Hold **A** → **Reaction Timer** (green spinner)
-  - Hold **B** → **Rapid Fire** (blue spinner)
-  - Hold **none** → **Tug-of-War** (amber default)
-- **Any game:** hold **A+B ~1.5s** → reset to that game’s idle (two quick blinks confirm).
-
----
-
-## Launcher UX
-Runs **once at boot**:
-- Holding **A** shows a **green** spinner (Reaction).
-- Holding **B** shows a **blue** spinner (Rapid).
-- Holding **none** shows **amber** hints (Tug default).
-- After the window, the picked game stays active until a hardware reset.
-
----
-
-## Games
-
-### Tug-of-War (default)
-**Flow:** *Idle breathe* → *Solo or 2-Player match* → *Back to idle*
-
-- **Idle:** Amber breathing.  
-  - **Press A** → **Solo vs CPU** (you pull left with **A**).  
-  - **Press B** → **Two-Player** (Left uses **A**, Right uses the **Right** button).
-- **Gameplay:** Each button press pulls the marker one step around the ring. Reach your side’s end to win.  
-- **Feedback:** Ticks of tone per pull; win flashes your color (green = left, blue = right).
-
-**Controls**
-- **A** (idle) → start **Solo**  
-- **B** (idle) → start **Two-Player**  
-- **A** (in match) → pull left  
-- **Right button** (in match) → pull right (CPU pulses probabilistically in Solo)  
-- **A+B (hold)** → reset Tug idle
-
----
-
-### Reaction Timer
-**Flow:** *Idle breathe* → *Arm (tap A)* → *Random wait* → *GO* → *Score display* → *Idle*
-
-- **Idle:** Teal breathing.
-- **Arm:** **Tap A** to arm. The ring turns **blue** (“wait…”).  
-  - After a random delay, the board flashes **green** + tone (**GO**).
-- **React:** Press **A or Right** as fast as possible.
-- **Scoring:**  
-  - **Hundreds of ms** → amber flashes (count the blinks)  
-  - **Ones of 10ms** → green pips (0–9 LEDs lit)
-
-**False Start**
-- Pressing a button **before** GO → red flash + penalty, then back to idle.
-
-**Controls**
-- **A** (idle) → arm  
-- **Any button** on GO → stop timer  
-- **B** (idle) → enter **Tilt Maze** (alt-mode)  
-- **A+B (hold)** → reset to Reaction idle
-
-#### Alt-Mode: Tilt Maze
-- **Goal:** Tilt to steer a blue “ball” to successive **amber checkpoints** around the ring (fixed path).  
-- **Rule:** Stay near each checkpoint; if you drift away too long you fail (red) and restart.  
-- **Feedback:** Short rising tone on each checkpoint; brief green flash on success.
-
-**Controls**
-- **Tilt** to steer  
-- **A+B (hold)** → exit back to Reaction idle
-
----
-
-### Rapid Fire
-**Flow:** *Idle breathe* → *Timed heat* → *Win/Lose* → *Idle*
-
-- **Idle:** Purple breathing. **Press A** to start a heat.
-- **Heat:** Mash **A** to fill the green bar to **10 LEDs** before time runs out.  
-  - The bar **decays** automatically at a fixed cadence.
-
-**Defaults (from code)**
-- `RF_ROUND_MS = 10000` (10s heat)  
-- `RF_DECAY_MS = 450` (bar decays ≈2 LEDs every ~0.9s on average)  
-- `RF_GOAL = 10` (fill the ring)
-
-**Controls**
-- **A** (idle) → start heat  
-- **A** (in heat) → increase bar  
-- **B** (idle) → **Shaker Challenge** (alt-mode)  
-- **A+B (hold)** → reset Rapid idle
-
-#### Alt-Mode: Shaker Challenge
-**Flow:** *Ready pulse* → *Shake to build energy vs decay* → *Hold near-full to win* → *Idle*
-
-- **What you see:** A **teal meter** from 0–10 LEDs reflecting motion energy.  
-- **How to win:** Get to **≥9 LEDs** and keep it there for **1.5s**.  
-- **Time limit:** **12s** per round.  
-- **Audio:** Near full, you’ll hear soft encouragement chirps; win = triple green flash + tones.
-
-**What “counts” as a shake (from code):**
-- The game computes **g-excess** = `| |accel| − 1g |` each tick.  
-- Only motion above `SHK_THRESH = 1.2` (≈0.12 g) adds energy; it decays by `SHK_EN_DECAY = 0.985` each tick.  
-- Energy gain per tick above threshold is `ge * SHK_EN_FROM_G = ge * 0.045`.  
-- Meter mapping: about `energy*6 + 0.5` LEDs, clamped to 0–10.
-
-**Controls**
-- **Shake** to build/maintain the meter  
-- **A+B (hold)** → exit back to Rapid idle
-
----
-
-## Tuning & Constants
-
-Edit these at the top of `cp_minigames_3.ino`:
-
-### Global
-- `BRIGHTNESS` — NeoPixel brightness (0–255)  
-- `LAUNCHER_WINDOW_MS` — boot selection window (ms)  
-- `AB_RESET_MS` — A+B hold time to reset in-game (ms)
-
-### Reaction Timer
-- `REACT_MIN_DELAY_MS` / `REACT_MAX_DELAY_MS` — random wait before GO  
-- `REACT_FALSE_PENALTY_MS` — penalty on false start
-
-### Tilt Maze (alt for Reaction)
-- `TILT_STEP_MS` — update cadence (ms)  
-- `TILT_LOSE_MS` — max time away from checkpoint (ms)  
-- `TILT_GAIN` — tilt sensitivity
-
-### Rapid Fire
-- `RF_ROUND_MS` — heat length (ms)  
-- `RF_DECAY_MS` — decay cadence (↑ value = **slower** decay)  
-- `RF_GOAL` — LEDs required to win
-
-### Shaker Challenge (alt for Rapid)
-- `SHK_THRESH` — minimum g-excess to count as shake (lower = easier)  
-- `SHK_EN_FROM_G` — energy added per unit g-excess  
-- `SHK_EN_DECAY` — per-tick energy drain (closer to 1.0 = slower drain)  
-- `SHK_TICK_MS` — update cadence (ms)  
-- `SHK_ROUND_MS` — total round time (ms)  
-- `SHK_HOLD_MS` — time to hold ≥9 LEDs (ms)
-
-### Tug-of-War
-- `TUG_TRACK_LEN` — distance from center to win (LEDs)  
-- `TUG_STEP_MS` — drawing cadence (ms)  
-- **Solo CPU:**  
-  - `CPU_PULSE_MS` — CPU attempt period (ms)  
-  - `CPU_PUSH_CHANCE` — chance (%) to push on each pulse  
-  - `SOLO_ROUND_MS` — solo timeout (ms)
-
----
-
-## Code Structure
 ```text
-cp_minigames_3.ino
-├─ Utilities
-│  ├─ pixelsOff(), solid(), setPix(), toneHz()
-│  ├─ abResetHeld()          # debounced A+B reset with confirm blink
-│  └─ waitButtonsReleased()  # release guard to avoid stale inputs
-├─ splashAndPick()           # boot spinner + selection hints
-├─ Reaction Timer
-│  ├─ runReactionForever()
-│  └─ runTiltMazeForever()   # alt-mode (press B while in Reaction)
-├─ Rapid Fire
-│  ├─ runRapidForever()
-│  └─ runShakerForever()     # alt-mode (press B while in Rapid)
-├─ Tug-of-War (default)
-│  ├─ drawTugTrack()
-│  ├─ runTugSolo()           # A from idle
-│  ├─ runTugTwoPlayer()      # B from idle
-│  └─ runTugForever()
-└─ setup()/loop()            # boot pick → run selected game forever
+~/Developer/libraries/Adafruit_Circuit_Playground
 ```
+
+The sketch includes:
+
+```cpp
+#include <Adafruit_CircuitPlayground.h>
+```
+
+## Upload
+
+1. Open `CP_MiniGames_3/CP_MiniGames_3.ino` in Arduino IDE.
+2. Select your Circuit Playground Express or Circuit Playground Bluefruit board.
+3. Select the serial port for the board.
+4. Upload.
+5. Reset or power-cycle the board to use the boot picker.
+
+## Boot Picker
+
+The game is selected once, during the first 1.5 seconds after boot.
+
+| Boot input | Game |
+| --- | --- |
+| Hold A | Reaction Timer |
+| Hold B | Rapid Fire |
+| Hold nothing | Tug-of-War |
+
+The selected game keeps running until the board is reset.
+
+## Universal Control
+
+Hold A+B for about 1.5 seconds while inside a game to reset that game back to its own idle state. This does not return to the boot picker.
+
+## Tug-of-War
+
+Tug-of-War is the default game. It can be played solo against the CPU or as a two-player button-mashing match.
+
+### How to Play
+
+1. Let Tug-of-War start by holding no button during boot.
+2. From idle, press A for solo mode or B for two-player mode.
+3. In a match, each button press pulls the marker one step around the ring.
+4. The left player tries to pull toward the left end.
+5. The right player or CPU tries to pull toward the right end.
+6. Reaching an end wins the match.
+
+### Controls
+
+| Input | Action |
+| --- | --- |
+| A from idle | Start solo vs CPU |
+| B from idle | Start two-player |
+| A during match | Pull left |
+| B during match | Pull right |
+| A+B hold | Reset to Tug-of-War idle |
+
+### Solo Mode
+
+- You use A.
+- The CPU periodically attempts to push right.
+- If the solo timer expires, the CPU wins.
+
+## Reaction Timer
+
+Reaction Timer measures how quickly you press a button after the GO signal.
+
+### How to Play
+
+1. Hold A during boot to enter Reaction Timer.
+2. Press A from idle to arm the timer.
+3. Wait while the ring shows the waiting state.
+4. Do not press early.
+5. When the board flashes green and plays the GO tone, press A or B as fast as possible.
+6. Your reaction time is displayed on the LEDs.
+
+### Controls
+
+| Input | Action |
+| --- | --- |
+| A from idle | Arm the timer |
+| A or B after GO | Stop the timer |
+| B from idle | Enter Tilt Maze |
+| A+B hold | Reset to Reaction Timer idle |
+
+### False Start
+
+Pressing A or B before GO triggers a red penalty flash and returns to idle.
+
+### Score Display
+
+- Amber flashes show hundreds of milliseconds.
+- Green pips show tens of milliseconds.
+
+## Tilt Maze
+
+Tilt Maze is an alternate mode launched from Reaction Timer. You steer a blue ball through amber checkpoints around the ring.
+
+### How to Play
+
+1. Press B from Reaction Timer idle.
+2. Tilt the board to move the blue ball.
+3. Guide the ball to the amber checkpoint.
+4. Hold near the checkpoint long enough to collect it.
+5. Continue through the checkpoint path.
+6. Drifting away too long causes a red failure flash and restarts the maze.
+
+### Controls
+
+| Input | Action |
+| --- | --- |
+| Tilt | Move the ball |
+| A+B hold | Exit back to Reaction Timer |
+
+## Rapid Fire
+
+Rapid Fire is a timed button-mashing game.
+
+### How to Play
+
+1. Hold B during boot to enter Rapid Fire.
+2. Press A from idle to start a 10-second heat.
+3. Mash A to fill the green LED meter.
+4. The meter decays while the timer runs.
+5. Fill all 10 LEDs before time runs out to win.
+
+### Controls
+
+| Input | Action |
+| --- | --- |
+| A from idle | Start the heat |
+| A during heat | Fill the meter |
+| B from idle | Enter Shaker Challenge |
+| A+B hold | Reset to Rapid Fire idle |
+
+## Shaker Challenge
+
+Shaker Challenge is an alternate mode launched from Rapid Fire. You shake the board to build and hold energy.
+
+### How to Play
+
+1. Press B from Rapid Fire idle.
+2. Shake the board to build the teal meter.
+3. Reach at least 9 LEDs.
+4. Keep the meter at 9 or 10 LEDs for 1.5 seconds to win.
+5. If the 12-second round timer expires first, you lose.
+
+### Controls
+
+| Input | Action |
+| --- | --- |
+| Shake | Build energy |
+| A+B hold | Exit back to Rapid Fire |
+
+### Notes
+
+- Motion is measured as g-excess from the accelerometer.
+- Small movement below `SHK_THRESH` does not add energy.
+- Energy decays every tick, so steady motion matters.
+
+## Tuning Constants
+
+Edit these near the top of `CP_MiniGames_3.ino`.
+
+| Constant | Purpose |
+| --- | --- |
+| `BRIGHTNESS` | Overall NeoPixel brightness |
+| `LAUNCHER_WINDOW_MS` | Boot picker selection time |
+| `AB_RESET_MS` | A+B hold time |
+| `REACT_MIN_DELAY_MS`, `REACT_MAX_DELAY_MS` | Random wait before GO |
+| `REACT_FALSE_PENALTY_MS` | Reaction false-start penalty |
+| `TILT_STEP_MS` | Tilt Maze update cadence |
+| `TILT_LOSE_MS` | Time allowed away from a checkpoint |
+| `TILT_GAIN` | Tilt Maze sensitivity |
+| `RF_ROUND_MS` | Rapid Fire round length |
+| `RF_DECAY_MS` | Rapid Fire meter decay cadence |
+| `RF_GOAL` | Rapid Fire target LEDs |
+| `SHK_THRESH` | Shaker Challenge motion threshold |
+| `SHK_EN_FROM_G` | Shaker energy gain |
+| `SHK_EN_DECAY` | Shaker energy decay |
+| `SHK_TICK_MS` | Shaker update cadence |
+| `SHK_ROUND_MS` | Shaker round length |
+| `SHK_HOLD_MS` | Time required near full meter |
+| `TUG_TRACK_LEN` | Tug distance needed to win |
+| `CPU_PULSE_MS`, `CPU_PUSH_CHANCE` | Solo CPU behavior |
+| `SOLO_ROUND_MS` | Solo Tug-of-War timeout |
 
 ## Troubleshooting
 
-**No LEDs or tones after upload**  
-- Check **board & port** in Arduino IDE.  
-- Ensure **Adafruit Circuit Playground** library is installed.  
-- Power-cycle the board. First run may not show Serial prints until the port enumerates.
-
-**Rapid Fire feels unwinnable**  
-- Increase `RF_DECAY_MS` (slows decay) and/or increase `RF_ROUND_MS`.  
-- Aim for a steady mash; the bar decays at a fixed interval.
-
-**Shaker Challenge doesn’t register motion**  
-- Lower `SHK_THRESH` slightly (e.g., 1.0 → easier).  
-- Hold the board in hand; table vibrations couple poorly.  
-- Short, snappy shakes are better than slow arcs.
-
-**Reaction Timer false-starts often**  
-- Don’t rest fingers on buttons during the blue “armed” ring.  
-- Widen the random delay by increasing `REACT_MAX_DELAY_MS`.
-
-**Tug-of-War CPU too strong**  
-- Make CPU slower (`CPU_PULSE_MS` ↑) and/or less aggressive (`CPU_PUSH_CHANCE` ↓).  
-- For fair play, try Two-Player mode.
-
-**A+B reset isn’t recognized**  
-- Hold both buttons **continuously** until the purple confirm blink (~1.5s).  
-- If your switches are finicky, bump `AB_RESET_MS` a little.
-
----
-
-## FAQ
-
-**Why doesn’t A+B return to the launcher?**  
-For session stability. Use a hardware reset to re-select at boot.
-
-**Can I change which game is default?**  
-Yes. `splashAndPick()` maps “no buttons held” to **Tug-of-War**; feel free to modify.
-
-**CPX vs CPB behavior?**  
-Identical gameplay; audio loudness may differ slightly.
-
-**Can Tug-of-War get an alt-mode too?**  
-Sure—mirror the pattern used in Reaction/Rapid: check **B** while in Tug idle to branch.
-
----
+| Problem | Check |
+| --- | --- |
+| Sketch will not compile | Confirm the Adafruit Circuit Playground library is installed |
+| Upload fails | Confirm the selected board and port |
+| Wrong game starts | Hold the boot-picker button before pressing reset |
+| Reaction Timer false-starts | Release all buttons before arming |
+| Rapid Fire is too hard | Increase `RF_ROUND_MS` or `RF_DECAY_MS` |
+| Shaker Challenge is too hard | Lower `SHK_THRESH` or raise `SHK_EN_FROM_G` |
+| Tug CPU is too strong | Lower `CPU_PUSH_CHANCE` or raise `CPU_PULSE_MS` |
 
 ## Credits
-- **Design & Integration:** Iain Bennett  
-- **Platform & Library:** Adafruit Circuit Playground
+
+Design and code: Iain Bennett  
+Platform and library: Adafruit Circuit Playground
