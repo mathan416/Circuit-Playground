@@ -8,8 +8,7 @@
     • SPINNER (default, no boot buttons)
       - Physicsy spinner on the NeoPixel ring. Flick/tilt to add momentum.
       - A: direction lock (free/positive-only)
-      - B: tail length cycle (1 → 2 → 3 → 5)
-      - B any time → Alt-mode: COMET PAINTER (tilt to steer head; gentle trail)
+      - B: Alt-mode COMET PAINTER (tilt to steer head; gentle trail)
     • ORBIT (boot A)
       - Speed follows tilt magnitude.
       - A: sensitivity (Low / Med / High)
@@ -265,17 +264,7 @@ static void runSpinnerForever(){
     hue = (uint8_t)(hue + hueBase);
     drawComet(theta, tailLen, hue);
 
-    // Tail length cycle with quick press of B (but we use B for alt-mode on press at frame start)
-    if (!CircuitPlayground.rightButton() && CircuitPlayground.leftButton()==false){
-      // nothing; reserved
-    }
-
-    // Short tap on B *after* returning from painter: cycle length (quality-of-life)
-    if (CircuitPlayground.rightButton()){
-      tailLen = (tailLen==1)?2 : (tailLen==2)?3 : (tailLen==3)?5 : 1;
-      CircuitPlayground.playTone(760,70);
-      waitButtonsReleased(220);
-    }
+    // B is reserved for Comet Painter entry at the top of the loop.
   }
 }
 

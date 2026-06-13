@@ -634,8 +634,7 @@ void runDiceForever(){
 
 
 // ==================== Game: Simon-4 (runs forever) ====================
-// Pads: A1 -> red (pixel 2, 440Hz) | A2 -> green (pixel 6, 523Hz)
-//       A5 -> blue (pixel 9, 659Hz) | A6 -> amber (pixel 0, 784Hz)
+// Pads: A1 -> red | A2 -> green | A5 -> blue | A6 -> amber
 struct Pad {
   uint8_t  pixelIndex;
   uint16_t freq;
@@ -645,10 +644,10 @@ struct Pad {
 
 const Pad PADS[4] = {
   // pixelIndex, freq,  R,  G,  B,  arduinoPin
-  {8, 440, 40,  0,  0, A2},   // A1 → Pixel 3  (red)
-  {1, 523, 0,  40,  0, A5},   // A2 → Pixel 2  (green)
-  {6, 659, 0,   0, 40, A1},   // A5 → Pixel 8  (blue)
-  {3, 784, 40, 25,  0, A6}    // A6 → Pixel 7  (amber)
+  {8, 440, 40,  0,  0, A1},   // A1 -> red
+  {1, 523, 0,  40,  0, A2},   // A2 -> green
+  {6, 659, 0,   0, 40, A5},   // A5 -> blue
+  {3, 784, 40, 25,  0, A6}    // A6 -> amber
 };
 
 // Per-pad dynamic baselines measured at idle
@@ -676,6 +675,7 @@ static bool simonPadPressed(uint8_t idx) {
 // Wait for rising edge with hold + release hysteresis.
 static int8_t simonWaitPadEdge() {
   for (;;) { // ensure all released
+    if (abResetHeld()) return -1;
     bool anyHigh = false;
     for (uint8_t i=0;i<4;i++) {
       uint16_t v = CircuitPlayground.readCap(PADS[i].arduinoPin);
@@ -685,10 +685,14 @@ static int8_t simonWaitPadEdge() {
     delay(5);
   }
   for (;;) { // wait for press + confirm
+    if (abResetHeld()) return -1;
     for (uint8_t i=0;i<4;i++) {
       if (simonPadPressed(i)) {
         unsigned long t = millis();
-        while (simonPadPressed(i) && (millis() - t) < 40) { delay(5); }
+        while (simonPadPressed(i) && (millis() - t) < 40) {
+          if (abResetHeld()) return -1;
+          delay(5);
+        }
         if (simonPadPressed(i)) return (int8_t)i;
       }
     }
@@ -951,8 +955,46 @@ SIMON_IDLE_TOP:
     }
 
 START_SIMON_ROUND:
-    // … (unchanged)
-    ;
+    len = 0;
+    pixelsOff();
+    waitButtonsReleased(150);
+
+    for (;;) {
+      if (abResetHeld()) { pixelsOff(); waitButtonsReleased(250); goto SIMON_IDLE_TOP; }
+
+      if (len >= sizeof(seq)) {
+        for (uint8_t k=0; k<4; k++) {
+          solid(0, 35, 0); CircuitPlayground.playTone(980, 100);
+          pixelsOff(); delay(90);
+        }
+        goto SIMON_IDLE_TOP;
+      }
+
+      seq[len++] = (uint8_t)random(0, 4);
+
+      delay(350);
+      for (uint8_t i=0; i<len; i++) {
+        if (abResetHeld()) { pixelsOff(); waitButtonsReleased(250); goto SIMON_IDLE_TOP; }
+        flashPad(seq[i], 240);
+        delay(120);
+      }
+
+      for (uint8_t i=0; i<len; i++) {
+        int8_t got = simonWaitPadEdge();
+        if (got < 0) { pixelsOff(); waitButtonsReleased(250); goto SIMON_IDLE_TOP; }
+
+        flashPad((uint8_t)got, 140);
+        if ((uint8_t)got != seq[i]) {
+          loseFlash();
+          goto SIMON_IDLE_TOP;
+        }
+      }
+
+      solid(0, 25, 0);
+      CircuitPlayground.playTone(880, 80);
+      pixelsOff();
+      delay(220);
+    }
   }
 }
 
